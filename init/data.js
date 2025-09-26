@@ -1,5 +1,3 @@
-const mongoose = require("mongoose");
-
 const sampleListings = [
   {
     title: "Cozy Beachfront Cottage",

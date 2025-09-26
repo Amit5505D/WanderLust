@@ -1,13 +1,114 @@
 <% layout("/layouts/boilerplate") %>
+<%= success %>
 
-<h3>All Listings</h3>
+<style>
+  .filters {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+  }
 
-<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
-  <% for (let listing of allListing) { %>
+  .filter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.8rem; /* smaller text */
+    color: #333;
+  }
+
+  .filter i {
+    font-size: 1rem;         /* smaller icon */
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    padding: 0.7rem;         /* smaller padding */
+    margin-bottom: 0.4rem;
+    width: 2.5rem;           /* smaller circle */
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .filter:hover {
+    color: #ff385c;
+  }
+
+  .filter i:hover {
+    border-color: #ff385c;
+  }
+
+  .tax-info {
+    font-size: 0.7rem;
+    color: #888;
+    display: none;
+  }
+
+  .tax-toggle {
+    height: 3.5rem;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+</style>
+
+<div class="filters">
+  <div class="filter">
+    <i class="fa-solid fa-fire"></i>
+    Trending
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-mountain"></i>
+    Mountains
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-umbrella-beach"></i>
+    Beach
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-city"></i>
+    City
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-campground"></i>
+    Camping
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-tree"></i>
+    Forest
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-hotel"></i>
+    Hotels
+  </div>
+  <div class="filter">
+    <i class="fa-solid fa-person-swimming"></i>
+    Pools
+  </div>
+
+  <!-- Tax toggle aligned right -->
+  <div class="tax-toggle">
+    <div class="form-check-reverse form-switch">
+      <input class="form-check-input" type="checkbox" id="switchCheckDefault">
+      <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+  <% for (let listing of allListings) { %>
     <div class="col mb-4">
       <div class="card h-100 listing-card">
         <a href="/listings/<%= listing._id %>" class="text-decoration-none text-dark">
-          <img src="<%= listing.image %>" 
+          <img src="<%= listing.image.url %>" 
                class="card-img-top" 
                alt="listing_image" 
                style="height:20rem; object-fit:cover;">
@@ -16,6 +117,7 @@
               <b><%= listing.title %></b><br>
               <% if (listing.price) { %>
                 ₹<%= Number(listing.price).toLocaleString("en-IN") %> /night
+                <i class="tax-info"> &nbsp; &nbsp;  +18% GST</i>
               <% } else { %>
                 <span class="text-muted">Price not available</span>
               <% } %>
@@ -26,3 +128,30 @@
     </div>
   <% } %>
 </div>
+
+
+<script>
+  let taxToggle = document.getElementById('switchCheckDefault');
+  taxToggle.addEventListener('change', function() {
+    let priceElements = document.querySelectorAll('.card-text b + br + text, .card-text b + br + span, .card-text b + br + text + text');
+    priceElements.forEach(el => {
+      let priceText = el.textContent.trim();
+      let priceMatch = priceText.match(/₹([\d,]+) \/night/);
+      if (priceMatch) {
+        let basePrice = parseInt(priceMatch[1].replace(/,/g, ''));
+        if (this.checked) {
+          // Add 18% tax
+          let totalPrice = Math.round(basePrice * 1.18);
+          el.textContent = `₹${totalPrice.toLocaleString("en-IN")} /night (incl. taxes)`;
+        } else {
+          // Show base price
+          el.textContent = `₹${basePrice.toLocaleString("en-IN")} /night`;
+        }
+      }
+    });
+    let taxInfo = document.getElementsByClassName('tax-info');
+    for (let info of taxInfo) {
+      info.style.display = this.checked ? 'inline' : 'none';
+    }
+  });
+</script>

@@ -1,5 +1,13 @@
 <% layout("/layouts/boilerplate") %>
 
+<script>
+  const mapToken = "<%= process.env.MAP_TOKEN %>";
+  const coordinates = "<%- JSON.stringify( listing.geometry.coordinates) %>";
+
+</script>
+
+  
+
 <div class="row">
   <div class="col-12 col-md-8 offset-md-2">
 
@@ -7,7 +15,7 @@
 
     <div class="card shadow rounded mb-5" listing-card>
       <!-- Image -->
-      <img src="<%= listing.image %>" class="card-img-top" alt="listing_image" style="height: 300px; object-fit: cover;">
+      <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 300px; object-fit: cover;">
 
       <!-- Card Body -->
       <div class="card-body">
@@ -26,18 +34,29 @@
 
         <p class="card-text"><strong>Location:</strong> <%= listing.location %></p>
         <p class="card-text"><strong>Country:</strong> <%= listing.country %></p>
+        <p class="card-text">
+          <strong>Listed by:</strong>
+          <% if (listing.owner && listing.owner.username) { %>
+            <%= listing.owner.username %>
+          <% } else { %>
+            <span class="text-muted">Unknown</span>
+          <% } %>
+        </p>
 
         <!-- Responsive Buttons -->
+        
         <div class="mt-4 d-flex flex-wrap gap-2">
           <a href="/listings/<%= listing._id %>/edit" class="btn btn-primary flex-grow-1 flex-md-grow-0">Edit</a>
           <form action="/listings/<%= listing._id %>?_method=DELETE" method="POST" class="d-inline flex-grow-1 flex-md-grow-0">
             <button type="submit" class="btn btn-danger w-100 w-md-auto">Delete</button>
           </form>
         </div>
+        
       </div>
     </div>
 
     <!-- Review Form -->
+    <% if (currentUser) { %>
     <div class="card shadow rounded mb-5">
       <div class="card-body">
         <h4>Leave a review</h4>
@@ -69,6 +88,7 @@
         </form>
       </div>
     </div>
+    <% } %>
 
     <!-- Reviews Section -->
     <div class="row">
@@ -136,8 +156,50 @@
         </div>
       <% } %>
     </div>
+    
+    </div>
+    <div class="col-6 offset-3 mb-3">
+      <h3>Where you'll be</h3>
+      <div id="map"></div>
+      
   </div>
 </div>
+<script>
+    console.log('Starting map initialization...');
+    console.log('Mapbox token:', '<%= mapToken %>');
+    console.log('mapboxgl available:', typeof mapboxgl);
+    
+    try {
+        if (typeof mapboxgl === 'undefined') {
+            console.error('Mapbox GL JS library is not loaded!');
+        } else {
+            mapboxgl.accessToken = '<%= mapToken %>';
+            console.log('Access token set');
+            
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center: [-74.5, 40],
+                zoom: 9
+            });
+            
+            console.log('Map object created:', map);
+            
+            map.on('load', function() {
+                console.log('Map loaded successfully!');
+            });
+            
+            map.on('error', function(e) {
+                console.error('Map error:', e);
+            });
+        }
+    } catch (error) {
+        console.error('Error during map creation:', error);
+    }
+    const marker = new mapboxgl.Marker()
+        .setLngLat([-74.5, 40])
+        .addTo(map);
+</script>
 
 <script>
 // Interactive Star Rating
